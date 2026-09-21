@@ -23,24 +23,30 @@ export function buildMetadata({
   noIndex = false,
 }: BuildMetadataOptions = {}): Metadata {
   const url = absoluteUrl(path)
-  const resolvedTitle = title ? `${title} — ${siteConfig.name}` : undefined
+  // The root layout owns the "— Aurelius" suffix via its title template, so
+  // pages pass the bare title. OG and Twitter get the suffixed form, since
+  // the template does not apply to those.
+  const suffixedTitle = title ? `${title} — ${siteConfig.name}` : undefined
 
   return {
-    title: resolvedTitle,
+    // Spread over the root layout's `title` config, so an explicit `undefined`
+    // here would erase the default/template and ship a page with no <title>.
+    // Omit the key instead and let the layout's default stand.
+    ...(title ? { title } : {}),
     description,
     alternates: { canonical: url },
     openGraph: {
       type: "website",
       url,
       siteName: siteConfig.name,
-      title: resolvedTitle ?? `${siteConfig.name} — ${siteConfig.tagline}`,
+      title: suffixedTitle ?? siteConfig.seoTitle,
       description,
       locale: siteConfig.locale,
       images: [{ url: absoluteUrl(image), width: 1200, height: 630 }],
     },
     twitter: {
       card: "summary_large_image",
-      title: resolvedTitle ?? `${siteConfig.name} — ${siteConfig.tagline}`,
+      title: suffixedTitle ?? siteConfig.seoTitle,
       description,
       images: [absoluteUrl(image)],
     },

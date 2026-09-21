@@ -116,8 +116,7 @@ export function Hero() {
           <RevealItem>
             <p className="mt-6 flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <ShieldCheck aria-hidden className="size-4 text-accent" />
-              GDPR compliant &middot; PCI DSS payments &middot; Works with your
-              existing diary
+              Encrypted client records &middot; Works with your existing diary
             </p>
           </RevealItem>
 

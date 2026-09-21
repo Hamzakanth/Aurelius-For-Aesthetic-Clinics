@@ -63,7 +63,7 @@ export function SiteFooter() {
             rights reserved.
           </p>
           <p className="font-mono text-xs tracking-wider text-muted-foreground">
-            GDPR &middot; PCI DSS &middot; Your clients never train our models
+            Encrypted end to end &middot; Your clients never train our models
           </p>
         </div>
       </Container>

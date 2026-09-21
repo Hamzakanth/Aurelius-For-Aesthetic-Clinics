@@ -79,7 +79,7 @@ export function PricingComparison({
         as="h3"
         eyebrow="Full breakdown"
         title="Compare every plan"
-        description="Unlimited team logins, GDPR-compliant data handling and a free pilot come with all three."
+        description="Unlimited team logins, encrypted client data and a free pilot come with all three."
         className="mx-auto"
       />
 
@@ -91,8 +91,8 @@ export function PricingComparison({
             <div className="overflow-x-auto [scrollbar-width:thin]">
               <table className="w-full min-w-[820px] border-collapse text-left">
                 <caption className="sr-only">
-                  Feature comparison across the Practice, Group and Health
-                  system plans, priced{" "}
+                  Feature comparison across the Studio, Pro and Brand plans,
+                  priced{" "}
                   {cycle === "annual" ? "annually" : "monthly"}.
                 </caption>
 

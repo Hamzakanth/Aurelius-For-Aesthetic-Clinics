@@ -1,6 +1,8 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
+import { siteConfig } from "@/config/site"
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
@@ -11,9 +13,9 @@ export function absoluteUrl(path = "/") {
   // origin would produce a URL that resolves to nothing.
   if (/^https?:\/\//.test(path)) return path
 
-  const base = (
-    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
-  ).replace(/\/$/, "")
+  // Single origin, single guard: siteConfig validates NEXT_PUBLIC_SITE_URL at
+  // import time, so canonical/OG/schema URLs cannot silently stay on localhost.
+  const base = siteConfig.url.replace(/\/$/, "")
   return `${base}${path.startsWith("/") ? path : `/${path}`}`
 }
 

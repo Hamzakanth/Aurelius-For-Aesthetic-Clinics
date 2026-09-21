@@ -3,10 +3,9 @@
 import * as React from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { CheckCircle2, ChevronDown, Loader2 } from "lucide-react"
-import { toast } from "sonner"
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
+import { AlertCircle, CheckCircle2, ChevronDown, Loader2 } from "lucide-react"
 
-import { submitContact } from "@/app/actions/contact"
 import {
   contactSchema,
   TEAM_SIZES,
@@ -19,6 +18,13 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 
 const MESSAGE_MAX = 1000
+
+// Web3Forms access key — public by design, safe in client code. The free plan
+// only accepts browser submissions, so this posts from the client.
+const WEB3FORMS_ACCESS_KEY = "1a8a48d8-c512-43c7-a9fd-75aa148e6639"
+const SUBMIT_TIMEOUT_MS = 15_000
+
+const FIELD_NAMES = ["name", "email", "company", "teamSize", "message"] as const
 
 /** Label + control + error, wired so the error is announced, not just shown. */
 function Field({
@@ -65,7 +71,21 @@ function Field({
 }
 
 /** Replaces the form once submitted. A toast alone is too easy to miss. */
-function SuccessPanel({ onReset }: { onReset: () => void }) {
+function SuccessPanel({
+  firstName,
+  onReset,
+}: {
+  firstName: string
+  onReset: () => void
+}) {
+  const headingRef = React.useRef<HTMLHeadingElement>(null)
+
+  // The submit button just vanished; move focus somewhere meaningful so
+  // keyboard and screen-reader users land on the confirmation.
+  React.useEffect(() => {
+    headingRef.current?.focus()
+  }, [])
+
   return (
     <div
       role="status"
@@ -75,7 +95,13 @@ function SuccessPanel({ onReset }: { onReset: () => void }) {
         <CheckCircle2 aria-hidden className="size-7 text-accent" />
       </span>
       <div>
-        <h3 className="text-lg font-semibold">Request received</h3>
+        <h3
+          ref={headingRef}
+          tabIndex={-1}
+          className="text-lg font-semibold outline-none"
+        >
+          {firstName ? `Thanks, ${firstName} — request received` : "Request received"}
+        </h3>
         <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
           Someone who has actually set Aurelius up in a studio will reply within
           one business day — usually with a couple of questions about your
@@ -115,13 +141,18 @@ function SuccessPanel({ onReset }: { onReset: () => void }) {
 export function ContactForm() {
   const [isPending, startTransition] = React.useTransition()
   const [isDone, setIsDone] = React.useState(false)
+  const [firstName, setFirstName] = React.useState("")
+  const [submitError, setSubmitError] = React.useState<string | null>(null)
+  const botcheckRef = React.useRef<HTMLInputElement>(null)
+  const reduceMotion = useReducedMotion()
 
   const {
     register,
     handleSubmit,
     reset,
-    setError,
     watch,
+    getValues,
+    setValue,
     formState: { errors },
   } = useForm<ContactValues>({
     resolver: zodResolver(contactSchema),
@@ -141,31 +172,134 @@ export function ContactForm() {
   const messageLength = watch("message")?.length ?? 0
 
   const onSubmit = (values: ContactValues) => {
+    setSubmitError(null)
     startTransition(async () => {
-      const result = await submitContact(values)
+      const controller = new AbortController()
+      const timer = setTimeout(() => controller.abort(), SUBMIT_TIMEOUT_MS)
 
-      if (!result.ok) {
-        for (const [field, message] of Object.entries(result.fieldErrors ?? {})) {
-          setError(field as keyof ContactValues, { type: "server", message })
+      try {
+        const locations =
+          TEAM_SIZES.find((o) => o.value === values.teamSize)?.label ??
+          values.teamSize
+
+        const res = await fetch("https://api.web3forms.com/submit", {
+          method: "POST",
+          signal: controller.signal,
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            access_key: WEB3FORMS_ACCESS_KEY,
+            subject: `Walkthrough request — ${values.company}`,
+            from_name: "Aurelius website",
+            replyto: values.email,
+            botcheck: botcheckRef.current?.checked ?? false,
+            name: values.name,
+            email: values.email,
+            company: values.company,
+            locations,
+            message: values.message,
+          }),
+        })
+        const data = (await res.json().catch(() => null)) as {
+          success?: boolean
+        } | null
+
+        if (!res.ok || !data?.success) {
+          setSubmitError(
+            "We couldn't send your request just now. Please try again in a moment, or email us directly."
+          )
+          return
         }
-        toast.error(result.message)
+      } catch (error) {
+        setSubmitError(
+          error instanceof DOMException && error.name === "AbortError"
+            ? "This is taking longer than it should. Please check your connection and try again."
+            : "We couldn't reach our server. Please check your connection and try again."
+        )
         return
+      } finally {
+        clearTimeout(timer)
       }
 
-      toast.success("Request received", { description: result.message })
+      setFirstName(values.name.split(" ")[0] ?? "")
       reset()
       setIsDone(true)
     })
   }
 
-  if (isDone) return <SuccessPanel onReset={() => setIsDone(false)} />
+  // Without this, a failed check looks like a dead button: the only feedback
+  // is a small line under one field, possibly out of view.
+  const onInvalid = () => {
+    setSubmitError("Please fix the highlighted fields above, then send again.")
+  }
+
+  // Autofill and password managers can fill inputs without firing change
+  // events, leaving react-hook-form validating a stale value. Read what is
+  // actually in the DOM before validating.
+  const syncAndSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    const formData = new FormData(event.currentTarget)
+    for (const field of FIELD_NAMES) {
+      const value = formData.get(field)
+      if (typeof value === "string" && value !== getValues(field)) {
+        setValue(field, value as never, { shouldDirty: true })
+      }
+    }
+    return handleSubmit(onSubmit, onInvalid)(event)
+  }
+
+  const fade = reduceMotion
+    ? {}
+    : {
+        initial: { opacity: 0, y: 8 },
+        animate: { opacity: 1, y: 0 },
+        exit: { opacity: 0, y: -8 },
+        transition: { duration: 0.25, ease: [0.22, 1, 0.36, 1] as const },
+      }
 
   return (
+    <AnimatePresence mode="wait" initial={false}>
+      {isDone ? (
+        <motion.div key="done" {...fade}>
+          <SuccessPanel
+            firstName={firstName}
+            onReset={() => setIsDone(false)}
+          />
+        </motion.div>
+      ) : (
+        <motion.div key="form" {...fade}>
+          {renderForm()}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+
+  function renderForm() {
+  return (
     <form
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={syncAndSubmit}
       noValidate
-      className="flex flex-col gap-5"
+      aria-busy={isPending}
     >
+      {/* Honeypot: hidden from people, irresistible to bots. Web3Forms drops
+          any submission where it is checked. */}
+      <input
+        ref={botcheckRef}
+        type="checkbox"
+        name="botcheck"
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden
+        className="hidden"
+      />
+
+      {/* Disabling the fieldset locks every control while sending, so the
+          request can't be edited or double-submitted mid-flight. */}
+      <fieldset
+        disabled={isPending}
+        className="flex flex-col gap-5 transition-opacity duration-200 disabled:opacity-70"
+      >
       <div className="grid gap-5 sm:grid-cols-2">
         <Field id="name" label="Full name" error={errors.name?.message}>
           <Input
@@ -178,7 +312,7 @@ export function ContactForm() {
           />
         </Field>
 
-        <Field id="email" label="Work email" error={errors.email?.message}>
+        <Field id="email" label="Email" error={errors.email?.message}>
           <Input
             id="email"
             type="email"
@@ -261,6 +395,16 @@ export function ContactForm() {
         ) : null}
       </Field>
 
+      {submitError ? (
+        <div
+          role="alert"
+          className="flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/5 px-3.5 py-3 text-sm text-destructive"
+        >
+          <AlertCircle aria-hidden className="mt-0.5 size-4 shrink-0" />
+          <p>{submitError}</p>
+        </div>
+      ) : null}
+
       <div className="mt-2 flex flex-col gap-3">
         <Button
           type="submit"
@@ -283,9 +427,12 @@ export function ContactForm() {
         </p>
       </div>
 
+      </fieldset>
+
       <p aria-live="polite" className="sr-only">
         {isPending ? "Submitting your request" : ""}
       </p>
     </form>
   )
+  }
 }

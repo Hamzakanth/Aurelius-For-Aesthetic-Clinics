@@ -77,7 +77,7 @@ export default function LoginPage() {
           <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
             <span className="flex items-center gap-1.5">
               <Lock aria-hidden className="size-3" />
-              GDPR compliant · PCI DSS payments
+              Encrypted in transit and at rest
             </span>
 
             {/* "Is it down, or is it me?" is the first question when a sign-in

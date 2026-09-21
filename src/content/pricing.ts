@@ -167,7 +167,7 @@ export const pricingComparison: PricingComparisonGroup[] = [
         values: { studio: false, group: false, brand: true },
       },
       {
-        label: "Data processing agreement and review",
+        label: "Custom data retention and access review",
         values: { studio: false, group: false, brand: true },
       },
     ],

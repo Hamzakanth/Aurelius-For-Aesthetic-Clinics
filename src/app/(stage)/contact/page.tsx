@@ -73,8 +73,7 @@ export default function ContactPage() {
           <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
             <span className="flex items-center gap-1.5">
               <ShieldCheck aria-hidden className="size-3" />
-              GDPR compliant · Data processing agreement available · PCI DSS
-              payments
+              Encrypted in transit and at rest · Your data stays yours
             </span>
           </div>
 

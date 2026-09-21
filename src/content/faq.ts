@@ -29,7 +29,7 @@ export const faqs: FaqItem[] = [
     id: "data",
     question: "How do you handle client data?",
     answer:
-      "Client records, consultation answers and photos are encrypted in transit and at rest with per-studio keys, never used to train shared models, and retained on a schedule you set. We are GDPR compliant, sign a data processing agreement with every customer, and payments run on PCI DSS-compliant infrastructure.",
+      "Client records, consultation answers and photos are encrypted in transit and at rest with per-studio keys, never used to train shared models, and retained on a schedule you set. You decide what is stored and for how long, you can export or delete a client record at any time, and payments are handled by an established payment provider rather than by us.",
   },
   {
     id: "wrong",

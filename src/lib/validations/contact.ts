@@ -1,13 +1,5 @@
 import { z } from "zod"
 
-const FREE_EMAIL_DOMAINS = [
-  "gmail.com",
-  "yahoo.com",
-  "hotmail.com",
-  "outlook.com",
-  "icloud.com",
-]
-
 export const contactSchema = z.object({
   name: z
     .string()
@@ -19,11 +11,7 @@ export const contactSchema = z.object({
     .string()
     .trim()
     .min(1, "Email is required.")
-    .email("That does not look like a valid email address.")
-    .refine(
-      (value) => !FREE_EMAIL_DOMAINS.includes(value.split("@")[1] ?? ""),
-      "Please use your work email so we can route you to the right team."
-    ),
+    .email("That does not look like a valid email address."),
 
   company: z
     .string()
@@ -38,7 +26,7 @@ export const contactSchema = z.object({
   message: z
     .string()
     .trim()
-    .min(20, "A sentence or two about your setup helps us prepare.")
+    .min(1, "Please add a short message.")
     .max(1000, "Please keep this under 1,000 characters."),
 })
 

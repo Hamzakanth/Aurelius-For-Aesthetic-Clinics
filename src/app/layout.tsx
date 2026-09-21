@@ -28,7 +28,7 @@ const cormorant = Cormorant_Garamond({
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: `${siteConfig.name} — ${siteConfig.tagline}`,
+    default: siteConfig.seoTitle,
     template: `%s — ${siteConfig.name}`,
   },
   applicationName: siteConfig.name,

@@ -54,9 +54,15 @@ function AccordionContent({
   ...props
 }: React.ComponentProps<typeof AccordionPrimitive.Content>) {
   return (
+    // `forceMount` keeps every answer in the served HTML instead of mounting it
+    // on open. Without it the FAQPage JSON-LD promises answers the crawler
+    // never finds in the DOM, and ~800 words of the page's most persuasive copy
+    // ship to nobody. Collapsed state is height only: the animation owns the
+    // height while it runs, `h-0` holds it there afterwards.
     <AccordionPrimitive.Content
+      forceMount
       data-slot="accordion-content"
-      className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
+      className="overflow-hidden data-[state=closed]:h-0 data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
       {...props}
     >
       <div
