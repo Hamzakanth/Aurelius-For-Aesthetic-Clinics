@@ -11,7 +11,7 @@ import { Mail, ShieldCheck } from "lucide-react"
 
 import { siteConfig } from "@/config/site"
 import { ContactForm } from "@/components/forms/contact-form"
-import { Parallax, Tilt, usePointer } from "@/components/motion/pointer-stage"
+import { Parallax, usePointer } from "@/components/motion/pointer-stage"
 
 /**
  * The subject of the walkthrough stage: the same lit slab as the sign-in card.
@@ -29,15 +29,11 @@ import { Parallax, Tilt, usePointer } from "@/components/motion/pointer-stage"
  * an object and goes back to being a rectangle.
  */
 
-const TILT_DEGREES = 6
-
 const cardIn: Variants = {
-  hidden: { opacity: 0, y: 30, rotateX: 9, scale: 0.975 },
+  hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
     y: 0,
-    rotateX: 0,
-    scale: 1,
     transition: {
       duration: 0.75,
       ease: [0.16, 1, 0.3, 1],
@@ -103,11 +99,11 @@ export function WalkthroughCard() {
         initial="hidden"
         animate="visible"
         variants={shouldReduceMotion ? reducedCardIn : cardIn}
-        style={{ transformPerspective: 1600 }}
       >
-        <Tilt
-          strength={TILT_DEGREES}
-          perspective={1700}
+        {/* Flat on purpose: no Tilt, no Z planes. A card that tilts under the
+            pointer moved the submit button out from under it, which made the
+            button flicker and swallow clicks. */}
+        <div
           // Ink, not themed — the stage is espresso in both themes, so a card
           // following `--card` would arrive warm white on a near-black ground.
           // The whole subtree re-resolves off this one attribute: the form's
@@ -141,8 +137,7 @@ export function WalkthroughCard() {
           {/* --- Plane 1: identity (furthest forward) -------------------- */}
           <motion.div
             variants={planeIn}
-            style={{ z: 34 }}
-            className="relative [transform-style:preserve-3d]"
+            className="relative"
           >
             <div className="flex items-start justify-between gap-4">
               <span className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary/60 px-2.5 py-1 font-mono text-[0.625rem] tracking-[0.14em] text-muted-foreground uppercase">
@@ -166,8 +161,7 @@ export function WalkthroughCard() {
           {/* --- Plane 2: the form -------------------------------------- */}
           <motion.div
             variants={planeIn}
-            style={{ z: 18 }}
-            className="relative mt-7 [transform-style:preserve-3d]"
+            className="relative mt-7"
           >
             <ContactForm />
           </motion.div>
@@ -177,8 +171,7 @@ export function WalkthroughCard() {
               Giving them the address costs nothing and keeps the lead. */}
           <motion.div
             variants={planeIn}
-            style={{ z: 6 }}
-            className="relative mt-6 flex items-start gap-2.5 border-t border-border pt-5 text-sm text-muted-foreground [transform-style:preserve-3d]"
+            className="relative mt-6 flex items-start gap-2.5 border-t border-border pt-5 text-sm text-muted-foreground"
           >
             <Mail aria-hidden className="mt-0.5 size-3.5 shrink-0" />
             <p>
@@ -191,7 +184,7 @@ export function WalkthroughCard() {
               </a>
             </p>
           </motion.div>
-        </Tilt>
+        </div>
       </motion.div>
     </div>
   )

@@ -1,14 +1,11 @@
 "use client"
 
 import dynamic from "next/dynamic"
-import CountUp from "react-countup"
-import { useReducedMotion } from "framer-motion"
 
-import { metrics } from "@/content/metrics"
 import { Container } from "@/components/primitives/container"
 import { Section } from "@/components/primitives/section"
 import { SectionHeading } from "@/components/primitives/section-heading"
-import { RevealGroup, RevealItem } from "@/components/motion/reveal"
+import { Reveal } from "@/components/motion/reveal"
 import { Skeleton } from "@/components/ui/skeleton"
 
 // Recharts is heavy and below the fold — keep it out of the initial bundle.
@@ -20,16 +17,21 @@ const CoverageChart = dynamic(
   }
 )
 
+/**
+ * The page's dark beat, and now a single exhibit rather than two.
+ *
+ * The four headline figures that used to sit above this chart are the page's
+ * opening claim — they belong in <ProofBand />, high up, where they can do the
+ * work of persuading someone to keep reading. What is left here is the thing
+ * that cannot be said as a number: the shape of the handover, month by month,
+ * as Aurelius takes the workload off the team.
+ *
+ * `data-surface="ink"` re-resolves every token beneath it — the card, the
+ * hairlines, the muted copy, the chart series and the gold — so nothing inside
+ * this subtree had to be told it is on a dark ground.
+ */
 export function Metrics() {
-  const shouldReduceMotion = useReducedMotion()
-
   return (
-    // The page's dark beat. The proof band is the one section that is pure
-    // evidence rather than persuasion, so it gets its own room: espresso,
-    // full-bleed, framed by ivory on both sides. `data-surface="ink"`
-    // re-resolves every token beneath it — cards, hairlines, muted copy, the
-    // chart series and the gold — so nothing inside this subtree had to be
-    // told it is on a dark ground.
     <Section
       id="metrics"
       data-surface="ink"
@@ -40,45 +42,22 @@ export function Metrics() {
         <SectionHeading
           headingId="metrics-heading"
           eyebrow="Outcomes"
-          title="Measured across 600+ studios"
-          description="Aggregated from customer data over the trailing twelve months. Medians, not best cases."
+          title="The handover, month by month"
+          description="A representative two-location studio through its first eight months. Aggregated customer data, medians rather than best cases."
+          align="center"
         />
 
-        <RevealGroup className="mt-14 grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
-          {metrics.map((metric) => (
-            <RevealItem key={metric.id} className="bg-card p-6">
-              <p className="font-display text-4xl font-semibold tracking-[-0.04em] tabular-nums">
-                {metric.prefix}
-                {shouldReduceMotion ? (
-                  metric.value.toFixed(metric.decimals ?? 0)
-                ) : (
-                  <CountUp
-                    end={metric.value}
-                    decimals={metric.decimals ?? 0}
-                    duration={1.8}
-                    enableScrollSpy
-                    scrollSpyOnce
-                  />
-                )}
-                <span className="text-accent">{metric.suffix}</span>
-              </p>
-              <p className="mt-2 text-sm font-medium">{metric.label}</p>
-              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                {metric.description}
-              </p>
-            </RevealItem>
-          ))}
-        </RevealGroup>
-
-        <div className="mt-6 rounded-xl border border-border bg-card p-6">
-          <h3 className="text-base font-semibold">
-            Enquiries and bookings: handled by Aurelius vs. your team
-          </h3>
-          <p className="mt-1 mb-6 text-sm text-muted-foreground">
-            A representative two-location studio through its first eight months.
-          </p>
-          <CoverageChart />
-        </div>
+        <Reveal className="mt-14">
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-lg sm:p-8">
+            <h3 className="text-base font-semibold">
+              Enquiries and bookings: handled by Aurelius vs. your team
+            </h3>
+            <p className="mt-1 mb-8 text-sm text-muted-foreground">
+              Front-of-house contacts per month, by who answered them.
+            </p>
+            <CoverageChart />
+          </div>
+        </Reveal>
       </Container>
     </Section>
   )

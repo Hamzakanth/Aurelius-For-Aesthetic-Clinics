@@ -11,7 +11,8 @@ import { cn } from "@/lib/utils"
  * layer is `aria-hidden` rather than read out as orphaned numbers.
  *
  * Positioned in percentages so they track the image as it crops, and hidden
- * below `lg` where the image is a short banner with no room for them.
+ * below `sm`, where the plate is too short to hold them without covering the
+ * subject.
  */
 
 const LIVE_CALL = {
@@ -30,7 +31,7 @@ const SLOT = {
 
 export function HeroGlassCards() {
   return (
-    <div aria-hidden className="pointer-events-none absolute inset-0 hidden lg:block">
+    <div aria-hidden className="pointer-events-none absolute inset-0 hidden sm:block">
       {/* Upper card — sits over the open field, away from the subject. */}
       <GlassCard
         icon={LIVE_CALL.icon}
@@ -47,15 +48,15 @@ export function HeroGlassCards() {
         label={SLOT.label}
         value={SLOT.value}
         detail={SLOT.detail}
-        className="animate-float-slower bottom-[14%] left-[20%] w-64"
+        className="animate-float-slower bottom-[12%] left-[15%] w-64"
       />
 
       {/* Compact metric chip, bottom right, anchoring the composition. */}
       <div
         className={cn(
-          // Dropped to shoulder height: at 46% it landed across her jaw. The
+          // Kept at shoulder height: any higher and it lands across her jaw. The
           // chest and shoulder are the only quiet area on the right of the crop.
-          "glass animate-float-slow absolute top-[68%] right-[8%] rounded-2xl px-4 py-3",
+          "glass animate-float-slow absolute bottom-[14%] right-[7%] rounded-2xl px-4 py-3",
           "motion-reduce:animate-none"
         )}
       >
